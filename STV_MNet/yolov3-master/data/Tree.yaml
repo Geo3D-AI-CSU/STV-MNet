@@ -1,0 +1,14 @@
+#Test by Icecream.Shao
+# download command/URL (optional)
+#download: https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip
+ 
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: E:/Suyingcai/STV_MNet/code/STV_MNet/yolov3-master/data/labelsSegment/MyCOCO/images/train/ # 377 images
+val: E:/Suyingcai/STV_MNet/code/STV_MNet/yolov3-master/data/labelsSegment/MyCOCO/images/val/ # 
+test: E:/Suyingcai/STV_MNet/code/STV_MNet/yolov3-master/data/labelsSegment/MyCOCO/images/test/
+trainval: E:/Suyingcai/STV_MNet/code/STV_MNet/yolov3-master/data/labelsSegment/MyCOCO/images/trainval/
+# number of classes
+nc: 1
+ 
+# class names
+names: [ 'Tree' ]

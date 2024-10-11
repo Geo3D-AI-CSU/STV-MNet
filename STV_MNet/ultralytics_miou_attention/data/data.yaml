@@ -1,0 +1,5 @@
+train: E:\Suyingcai\StreetView\ultralytics-main\ultralytics-main\data\trainval\txt\images\train    
+val: E:\Suyingcai\StreetView\ultralytics-main\ultralytics-main\data\trainval\txt\images\val
+test: E:\Suyingcai\StreetView\ultralytics-main\ultralytics-main\data\test\txt\images\test
+nc: 1 #标签数量
+names: ["Tree"] #标签名称

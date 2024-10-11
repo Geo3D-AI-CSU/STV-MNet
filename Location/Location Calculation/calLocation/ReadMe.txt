@@ -1,0 +1,5 @@
+1、json_to_csv文件是将网络跑出来的json文件转为可读入的csv文件
+2、calLocation.py文件是批量计算坐标的代码，改三个文件夹的路径即可
+3、mergecsv文件是将计算后的csv文件合并为一个文件
+4、selectJson是将需要进行位置计算的csv文件对应的json文件选出并复制到LNbbox中
+5、biomassXY是将x、y数据从output_csv文件中找到并追加到结构测算结果文件中

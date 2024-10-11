@@ -1,0 +1,10 @@
+程序说明：
+DL___AutomaticTreeInventory.r为未保存Wr结果的程序
+	输出为：/results/Structure calculation/results0.1/
+Modify___AutomaticTreeInventory.r为只保存对应Wr的程序
+	输出为：/results/Structure calculation/results_Wr
+appendPixelW.py为将对应文件结构测算结果与Wr相连接的程序
+
+将所有的csv合并之后
+计算Wr与0.03之间的比值
+将未修改Wr之前计算的结构参数乘以比值，得到修正后的结构参数
