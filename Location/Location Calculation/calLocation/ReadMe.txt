@@ -3,3 +3,5 @@
 3、mergecsv文件是将计算后的csv文件合并为一个文件
 4、selectJson是将需要进行位置计算的csv文件对应的json文件选出并复制到LNbbox中
 5、biomassXY是将x、y数据从output_csv文件中找到并追加到结构测算结果文件中
+6、project是将wgs84的坐标转换为UTM用于计算点与点之间的距离
+7、cluster是将原始计算后的坐标点进行聚类处理
