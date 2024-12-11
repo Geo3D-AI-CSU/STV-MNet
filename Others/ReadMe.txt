@@ -1,3 +1,3 @@
-1、calBiomass.py文件是根据生物量异速方程计算生物量
-2、calCarbonEmission.py文件是计算城市碳排放量
-3、carbon density.py文件是计算城市碳密度
+1、The calBiomass.py file calculates biomass based on the allometric equation for biomass.
+2、The calCarbonEmission.py file calculates the urban carbon emissions.
+3、The carbon_density.py file calculates the urban carbon density.

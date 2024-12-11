@@ -1,11 +1,12 @@
-深度估计：
-	程序入口：
-	monodepth_predict.py
+Depth Estimation:
 
-	输入数据：
-	街景影像数据
+Program Entry Point:
+  monodepth_predict.py
 
-	输出数据路径：
-	\STV_MNet\results\Location calculation\monoDepth\changsha_Monodepth
+Input Data:
+  Street view image data
+
+Output Data Path:
+  \STV_MNet\results\Location calculation\monoDepth\changsha_Monodepth
 
 
