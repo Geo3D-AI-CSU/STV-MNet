@@ -9,7 +9,7 @@
 
 """Monodepth data loader.
 """
-#确保python2和python3具有同样的行为
+
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
@@ -25,12 +25,10 @@ class MonodepthDataloader(object):
         self.dataset = dataset
         self.mode = mode
 
-        #左图像
+        
         self.left_image_batch  = None
-        #右图像
         self.right_image_batch = None
 
-        #对输入的文件名称进行裁剪导入
         input_queue = tf.train.string_input_producer([filenames_file], shuffle=False)
         line_reader = tf.TextLineReader()
         _, line = line_reader.read(input_queue)
@@ -49,16 +47,13 @@ class MonodepthDataloader(object):
 
         if mode == 'train':
             # randomly flip images
-            #生成随机数
             do_flip = tf.random_uniform([], 0, 1)
             left_image  = tf.cond(do_flip > 0.5, lambda: tf.image.flip_left_right(right_image_o), lambda: left_image_o)
             right_image = tf.cond(do_flip > 0.5, lambda: tf.image.flip_left_right(left_image_o),  lambda: right_image_o)
 
             # randomly augment images
             do_augment  = tf.random_uniform([], 0, 1)
-            #对左右图像进行增强
             left_image, right_image = tf.cond(do_augment > 0.5, lambda: self.augment_image_pair(left_image, right_image), lambda: (left_image, right_image))
-            #设置图像的形状
             left_image.set_shape( [None, None, 3])
             right_image.set_shape([None, None, 3])
 
@@ -75,7 +70,6 @@ class MonodepthDataloader(object):
             if self.params.do_stereo:
                 self.right_image_batch = tf.stack([right_image_o,  tf.image.flip_left_right(right_image_o)],  0)
                 self.right_image_batch.set_shape( [2, None, None, 3])
-#对左右图像进行随机增强
     def augment_image_pair(self, left_image, right_image):
         # randomly shift gamma
         random_gamma = tf.random_uniform([], 0.8, 1.2)
@@ -94,7 +88,7 @@ class MonodepthDataloader(object):
         left_image_aug  *= color_image
         right_image_aug *= color_image
 
-        # saturate，确定像素值在0和1之间
+        # saturate
         left_image_aug  = tf.clip_by_value(left_image_aug,  0, 1)
         right_image_aug = tf.clip_by_value(right_image_aug, 0, 1)
 

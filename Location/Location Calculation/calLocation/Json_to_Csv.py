@@ -6,16 +6,15 @@ import csv
 ROOT=r"E:\Suyingcai\STV_MNet"
 input_csv_folder=ROOT+r"\data\input data\Location\LNinput_csv"
 
-# 定义json_to_csv函数
 def json_to_csv(json_file_path, csv_file_path):
-    # 读取JSON文件
+    # read JSON
     with open(json_file_path, 'r') as f:
         data = json.load(f)
 
-    # 提取shapes数据
+    # get shapes
     shapes = data['shapes']
 
-    # 写入CSV文件
+    # write to CSV
     with open(csv_file_path, 'w', newline='') as csvfile:
         fieldnames = ['label', 'left', 'right', 'top', 'bottom']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -29,11 +28,10 @@ def json_to_csv(json_file_path, csv_file_path):
             bottom = shape['points'][1][1]
             writer.writerow({'label': label, 'left': left, 'right': right, 'top': top, 'bottom': bottom})
 
-# 获取文件夹中的所有JSON文件
+# all json data in folder
 json_folder_path = ROOT+r"\data\input data\Location\LNbbox"
 json_files = os.listdir(json_folder_path)
 
-# 对每个JSON文件运行json_to_csv函数
 for json_file in json_files:
     if json_file.endswith(".json"):
         json_file_path = os.path.join(json_folder_path, json_file)

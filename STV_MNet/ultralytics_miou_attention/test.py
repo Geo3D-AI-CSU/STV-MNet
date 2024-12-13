@@ -39,25 +39,46 @@ if __name__ == '__main__':
     STV_MNetPath=r'E:\Suyingcai\STV_MNet'
     model = YOLO(r'runs\segment\split_3_datasetODConv_3rd_WIoU\weights\best.pt')
     
-
-    
-
     results = model.predict(
-        source="Your original street view images", # 
-        stream=True,  # 对于视频采用流模式处理，防止因为因为堆积而内存溢出
-        # show=True,  # 实时推理演示
-        data="data/data.yaml",  # 
-        save=True, # 选择是否保存
-        # vid_stride=2,  # 视频帧数的步长，即隔几帧检测跟踪一次
-        save_txt=True,  # 把结果以txt形式保存
-        # save_conf=True,  # 保存置信度得分
-        # save_crop=True,  # 保存剪裁的图像
-        conf=0.1, # 规定阈值，即低于该阈值的检测框会被剔除
-        iou=0.7, # 交并比阈值，用于去除同一目标的冗余框
-        device="0,1", # 用GPU进行推理，如果使用cpu，则为device="cpu"
-    )
+    source="Your original street view images", 
+    # The source directory or file for the images or videos to be processed
     
-    # 对每一帧返回的结果进行处理
+    stream=True,  
+    # Use stream mode for video processing to prevent memory overflow due to frame accumulation
+    
+    # show=True,  
+    # Enable real-time inference demonstration
+    
+    data="data/data.yaml",  
+    # Configuration file specifying model parameters and dataset information
+    
+    save=True, 
+    # Choose whether to save the results
+    
+    # vid_stride=2,  
+    # Frame stride for video, i.e., how many frames to skip between detections/tracking
+    
+    save_txt=True,  
+    # Save results in text format
+    
+    # save_conf=True,  
+    # Save confidence scores
+    
+    # save_crop=True,  
+    # Save cropped images of detected objects
+    
+    conf=0.1, 
+    # Confidence threshold; detections below this threshold will be discarded
+    
+    iou=0.7,  
+    # IoU (Intersection over Union) threshold for NMS (Non-Maximum Suppression) to remove redundant bounding boxes for the same object
+    
+    device="0,1", 
+    # Use GPU for inference, specify which GPUs to use. Use "cpu" for CPU processing
+)
+
+# Process the results for each frame returned by the model
+
 for r in results:
     filepath=r.save_dir+"/json_seg"
     if os.path.exists(filepath) ==False:

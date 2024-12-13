@@ -14,7 +14,7 @@
 
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
-#计算梯度平均值
+
 def average_gradients(tower_grads):
 
     average_grads = []

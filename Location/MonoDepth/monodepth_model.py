@@ -87,7 +87,6 @@ class MonodepthModel(object):
 
     def generate_image_right(self, img, disp):
         return bilinear_sampler_1d_h(img, disp)
-    #计算两个图像之间的结构相似性参数
     def SSIM(self, x, y):
         C1 = 0.01 ** 2
         C2 = 0.03 ** 2
@@ -119,11 +118,9 @@ class MonodepthModel(object):
         smoothness_x = [disp_gradients_x[i] * weights_x[i] for i in range(4)]
         smoothness_y = [disp_gradients_y[i] * weights_y[i] for i in range(4)]
         return smoothness_x + smoothness_y
-    #生成视差图
     def get_disp(self, x):
-        disp = 0.3 * self.conv(x, 2, 3, 1, tf.nn.sigmoid)#sigmoid为激活函数
+        disp = 0.3 * self.conv(x, 2, 3, 1, tf.nn.sigmoid)
         return disp
-    #进行卷积
     def conv(self, x, num_out_layers, kernel_size, stride, activation_fn=tf.nn.elu):
         p = np.floor((kernel_size - 1) / 2).astype(np.int32)
         p_x = tf.pad(x, [[0, 0], [p, p], [p, p], [0, 0]])

@@ -25,10 +25,10 @@ for im_file_index_i in im_file:
 
     # ====================================================
     out = Image.open(im_test)
-    out1 = out.transpose(Image.FLIP_LEFT_RIGHT)  # 水平翻转
+    out1 = out.transpose(Image.FLIP_LEFT_RIGHT)  # horizontal
 
-    # out3 = out.rotate(45)                            #45°顺时针翻转
-    # out4 = img.rotate(30)                            #30°顺时针翻转
+    # out3 = out.rotate(45)                            #45°
+    # out4 = img.rotate(30)                            #30°
     # out1.show()
     # out2.show()
     # out3.show()

@@ -5,42 +5,54 @@ import cv2
 import json
 import numpy as np
 
+# Dictionary mapping class names to class indices
 label_dict = {
-    "Tree":0
+    "Tree": 0
 }
 
+# Dictionary mapping class indices to colors for visualization
 color_dict = {
-    0: (255, 000, 000)
+    0: (255, 0, 0)  # Red for trees
 }
-ROOT=r"E:\Suyingcai\STV_MNet\code"
-BASEDIR = ROOT+r"\STV_MNet\yolov3-master\data\labelsSegment"
+
+# Define root directory
+ROOT = r"E:\Suyingcai\STV_MNet\code"
+BASEDIR = osp.join(ROOT, r"STV_MNet\yolov3-master\data\labelsSegment")
 # BASEDIR = r"E:\Suyingcai\StreetView\ultralytics-main\ultralytics-main\runs\segment\predict"
-IMGDIR = osp.join(BASEDIR, 'png')
-LABDIR = osp.join(BASEDIR, 'bbox')
-OUTDIR = osp.join(BASEDIR, 'json_img')
-print("IMGDIR**********:",IMGDIR)
+IMGDIR = osp.join(BASEDIR, 'png')  # Image directory
+LABDIR = osp.join(BASEDIR, 'bbox')  # Label directory
+OUTDIR = osp.join(BASEDIR, 'json_img')  # Output directory
+print("IMGDIR**********:", IMGDIR)
+
+# Remove the output directory if it exists, then create it
 if osp.exists(OUTDIR):
     shutil.rmtree(OUTDIR)
 os.makedirs(OUTDIR)
 
-imgnames = [name for name in os.listdir(IMGDIR) if name.split('.')[-1] in ['png', 'jpg', 'tif', 'bmp']]  # 按扩展名过滤
-print("imagenames:",imgnames)
+# List all image files with specific extensions
+imgnames = [name for name in os.listdir(IMGDIR) if name.split('.')[-1] in ['png', 'jpg', 'tif', 'bmp']]  # Filter by extension
+print("Image names:", imgnames)
+
 for imgname in imgnames:
     path_img = osp.join(IMGDIR, imgname)
-    img = cv2.imread(path_img)  # 读图
+    img = cv2.imread(path_img)  # Read the image
     file_name, file_ext = os.path.splitext(imgname)
-    print("jsonnames:",file_name)
-    path_json = osp.join(LABDIR, file_name + '.json')  # 找到对应名字的json标注文件
+    print("JSON names:", file_name)
+    path_json = osp.join(LABDIR, file_name + '.json')  # Find the corresponding JSON annotation file
+    
     if os.path.exists(path_json):
         with open(path_json, 'r') as fp:
             jsonData = json.load(fp)
-        boxes = jsonData["shapes"]
+        
+        boxes = jsonData["shapes"]  # Get the list of shapes from JSON
         for box in boxes:
-            cls_name = box["label"]
-            xy4 = box["points"]
-            xy4 = np.array(xy4, dtype=np.int0)  # 损失精度！
-            # print(xy4.shape, xy4.dtype)  # shape: (4, 2) /*四个二维坐标*/, dtype: int64 /*整型*/
-            # 图纸，点阵集，索引，颜色，粗细
-            cv2.drawContours(img, [xy4], 0, color_dict[label_dict[cls_name]][::-1], 2)  # 画边框
-        cv2.imwrite(osp.join(OUTDIR, imgname), img)
+            cls_name = box["label"]  # Class name
+            xy4 = box["points"]  # Points of the bounding box
+            xy4 = np.array(xy4, dtype=np.int0)  # Convert to integer array (precision loss!)
+            # print(xy4.shape, xy4.dtype)  # shape: (4, 2) /*four 2D coordinates*/, dtype: int64 /*integer type*/
+            
+            # Draw contours on the image
+            cv2.drawContours(img, [xy4], 0, color_dict[label_dict[cls_name]][::-1], 2)  # Draw the bounding box
+            
+        cv2.imwrite(osp.join(OUTDIR, imgname), img)  # Save the image with drawn contours
         print(imgname + ", done...")

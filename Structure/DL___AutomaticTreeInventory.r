@@ -1,24 +1,24 @@
 # This is the code to create inventory automatically with pre-processed images from YOLOv3 and semantic segmentation with cityscape pretrained model.
 AutomaticCode <-
     function(RawImage, YoloImage, YoloTable, SemsegImage, processDir, VH=2.5){
-        print("进入函数")
+        print("into function")
       # Install and load essential packages for analysis
         pacman::p_load("imager", "tidyverse", "foreach", "segmented", "rmarkdown", "pander", "strucchange")
         print("Line8")
         # Extract Metadata from the file name of the Raw Image
         FileName <- gsub(".json.jpg", "", tail(unlist(strsplit(RawImage, "/")), 1))
         print(FileName)
-        # 按照"_"切割字符串
+        # Cutting strings by “_”
         parts <- strsplit(FileName, "_")[[1]]
         
-        # 从文件名提取信息
+        # get information from name of the file
         Latitude_Longitude <- strsplit(parts[2], ",")[[1]]
         Latitude <- Latitude_Longitude[2]
         Longitude <- Latitude_Longitude[1]
         Heading_end <- strsplit(parts[4], "_")[[1]][1]
         Heading <- substr(Heading_end, 1, nchar(Heading_end)-4)
         print(Heading)
-        # 构建DataFrame
+        # build DataFrame
         MetaData <- data.frame(
           Latitude = Latitude,
           Longitude = Longitude,
@@ -31,12 +31,12 @@ AutomaticCode <-
         # Load images
         
         Orig_img <- load.image(RawImage)     # original image for image size
-        Yolo_img <- load.image(YoloImage)     # original image for image size   加载YOLO目标检测的结果图像
+        Yolo_img <- load.image(YoloImage)     # original image for image size   Load the resultant image of YOLO target detection
         SmSg_img <- load.image(SemsegImage)   # Image from semantic segmentation
 
         # Load location of trees
         # (Bounding box from YOLO (left top right bottom class))
-        Yolo_bbox <- read.csv(YoloTable)   #Yolo image中每个检测对象的ID，left，top，right，bottom，class
+        Yolo_bbox <- read.csv(YoloTable)   #Yolo image ID，left，top，right，bottom，class
         
         # Information of original pictures
         W <- nrow(Orig_img) # Width of the picture
@@ -45,14 +45,14 @@ AutomaticCode <-
         print("Line26")
         # Required functions
         # Split image with imsub
-        HorSpliter <- function(Img, BBox){ Img %>% imsub(x >= BBox[1] & x <= BBox[3])} #按照边界框对img进行垂直方向裁剪
-        VerSpliter <- function(Img, BBox){ Img %>% imsub(y >= BBox[4] & y <= BBox[2])} #按照边界框对img进行水平方向裁剪
+        HorSpliter <- function(Img, BBox){ Img %>% imsub(x >= BBox[1] & x <= BBox[3])} #Crop img vertically according to the bounding box
+        VerSpliter <- function(Img, BBox){ Img %>% imsub(y >= BBox[4] & y <= BBox[2])} #Crop img horizontally according to the bounding box
 
         
         TreeExtractor <-
           function(Img){
             IO <- Img
-            R(IO)[which(!R(IO)[] * 255 == 128)] <- NA##图像中暗红色部分为树木，按颜色提取
+            R(IO)[which(!R(IO)[] * 255 == 128)] <- NA#The dark red part of the image is trees, extracted by color
             G(IO)[which(!G(IO)[] * 255 == 0)] <- NA
             B(IO)[which(!B(IO)[] * 255 == 0)] <- NA
             return(IO)
@@ -62,30 +62,23 @@ AutomaticCode <-
 
         BaseDetector <-
           function(Img){
-            # data <- R(Img)
-            # print(data)
-            # sumPixelValue <- colSums(data, na.rm=T) #计算非0像素的数量
-            # print(sumPixelValue)
-            # sumToV <- as.numeric(sumPixelValue, na.rm=T) #转为数值型向量
-            # print(sumToV)
-            # exceptValue <- sumToV %>% ifelse(. < 1, NA, .)#将小于1的小数设为na
-            # print(exceptValue)
-            # 计算图像中每一列非零像素的数量并转换为数值向量
+            
             TreeOnly_col <- as.numeric(colSums(R(Img), na.rm=T)) %>% ifelse(. < 1, NA, .)
-            # 检查是否存在非NA值
+            # Check if there are any non-NA values
             if(all(is.na(TreeOnly_col))) {
-              return(c(NA, NA, NA, NA))  # 如果全是NA值，则直接返回NA向量
+              return(c(NA, NA, NA, NA))  # If all values are NA, return an NA vector directly
             }
-            # 寻找非零像素的最小索引位置，即树的底部位置
+            # Find the minimum index of non-zero pixels, which is the tree's bottom position
             TreeOnly_min <- ((TreeOnly_col * 0 + 1) * c(1:H)) %>% min(.,na.rm=T)
-            # 寻找非零像素的最大索引位置，即树的顶部位置
+            # Find the maximum index of non-zero pixels, which is the tree's top position
             TreeOnly_max <- ((TreeOnly_col * 0 + 1) * c(1:H)) %>% max(.,na.rm=T)
-            # 将树的最大索引位置作为基准点
+            # Set the maximum index of the tree as the base point
             Base         <- TreeOnly_max
-            # 设置基准点与树的顶部位置之间的距离为零
-            Diff         <- 0       # 加一是为了包括基准点所在的像素单元
-            # 返回基准点、距离、树的最小索引位置和树的最大索引位置
+            # Set the distance between the base point and the tree's top position to zero
+            Diff         <- 0       # Adding one to include the pixel cell at the base point
+            # Return the base point, distance, minimum index of the tree, and maximum index of the tree
             return(c(Base, Diff, TreeOnly_min, TreeOnly_max))
+
           }
         
         
@@ -101,46 +94,68 @@ AutomaticCode <-
                 # print(out.df)
                 out.df$PixH <- c(1:nrow(out.df)) 
                 # print(out.df)
-                cellNumber  <- as.numeric(gsub("X", "", row.names(out.df)))#把X去掉,cellNumber是行号
+                cellNumber  <- as.numeric(gsub("X", "", row.names(out.df)))#get rid of X,cellNumber is the number of the row
                 # Check the first change point of the plot
                 
-                #剔除图像中不完整树木的检测
+                #Detection of Incomplete Trees in Rejected Images
                 print(length(out.df$PixW)>10)
                 if (length(out.df$PixW)>10){
-                    #突变点检测
-                    out.cp <- strucchange::Fstats(PixW ~ 1, data=out.df)
-                    VP       <- (H + 1) / 2
-                    Tree_W   <- max(out.df$PixW, na.rm=T)                                           # Crown width
-                    # print(Tree_W)
+                    # --- Mutation Point Detection (Change Point Detection) ---
 
+                    # Perform F-statistic test for change point detection in 'PixW' data.
+                    # This assumes a model where 'PixW' is modeled by a constant (intercept only).
+                    out.cp <- strucchange::Fstats(PixW ~ 1, data=out.df) 
+
+                    # Calculate the vertical position of the center of the crown (VP). 
+                    # It's assumed that 'H' represents the total height of the analyzed structure.
+                    VP       <- (H + 1) / 2
+
+                    # Get the maximum width (Tree_W) of 'PixW' values, representing the crown width.
+                    Tree_W   <- max(out.df$PixW, na.rm=TRUE) # Crown width
+                    # print(Tree_W)  # (This is a commented-out print statement)
+
+                    # Calculate the distance in cells from the cell number to the crown center (VP).
                     CellToVP <- ceiling(abs(cellNumber - VP))
-                    # print(CellToVP)
-                    Tree_H   <- sum(1/cos(asin(CellToVP/(H/2))), na.rm=T)                        # Tree Height   
-                    # print(Tree_H)
+                    # print(CellToVP)  # (This is a commented-out print statement)
+
+                    # Calculate the total tree height (Tree_H) using a trigonometric calculation.
+                    # This assumes a certain geometric relationship and utilizes 'CellToVP' and 'H'.
+                    Tree_H   <- sum(1/cos(asin(CellToVP/(H/2))), na.rm=TRUE)  # Tree Height
+                    # print(Tree_H)  # (This is a commented-out print statement)
+
+                    # Extract the breakpoint (mutation point) identified by the F-statistic test.
                     BreakPt  <- out.cp$breakpoint
-                    
-                    # Create plot输出突变点检测示意图
-                    plot(out.df$PixH, out.df$PixW, type="b", col="blue",xlab="CelltoBase", ylab="PixW", main="Structure Analyzer Plot")
-                    
-                    #显示突变点位置
-                    # Add a vertical line at the breakpoint
+
+                    # Create a plot visualizing the structure analysis
+                    #  Plots 'PixW' against 'PixH' with lines, color-coded in blue.
+                    #  Adds labels for axes and a title for the plot.
+                    plot(out.df$PixH, out.df$PixW, type="b", col="blue", xlab="CelltoBase", ylab="PixW", main="Structure Analyzer Plot")
+
+                    # Display the breakpoint location
+                    # Adds a vertical red dashed line at the detected breakpoint.
                     abline(v = out.cp$breakpoint, col = "red", lty = 2)
-                    
-                    
-                    Tree_BH  <- sum(1/cos(asin(CellToVP[1:BreakPt]/(H/2))), na.rm=T)                # Height below crown.
-                    
-                    
-                    # DBH which is assumed to be a median width below crown.此时设为0.1，为10分位数
+
+                    # Calculate tree height below the crown (Tree_BH), using the breakpoint
+                    # It assumes a geometric relationship and utilizes 'CellToVP' and 'H' 
+                    # but only considering cells up to the breakpoint.
+                    Tree_BH  <- sum(1/cos(asin(CellToVP[1:BreakPt]/(H/2))), na.rm=TRUE) # Height below crown.
+
+
+                    # --- Calculate DBH (Diameter at Breast Height) ---
+                    # DBH is assumed to be a representative width below the crown (here taken as the 10th percentile).
+                    # The next code block conditionally calculates DBH based on a comparison of Tree_BH and data lengths.
                     if (Tree_BH < length(out.df$PixW)) {
-                      Tree_DBH <- quantile(out.df$PixW[1:Tree_BH], 0.1, na.rm = TRUE) 
-                      print("Tree_DBH*******************************************************")
-                      print(Tree_DBH)
-                      
-                      # 创建度量表
-                      M <- data.frame(Tree_H, Tree_W, Tree_BH, Tree_DBH, TreeTop = min(cellNumber))
-                      print(M)
-                      return(M)
+                        # DBH is calculated by finding the 10th percentile of 'PixW' values from index 1 to Tree_BH
+                        Tree_DBH <- quantile(out.df$PixW[1:Tree_BH], 0.1, na.rm = TRUE) 
+                        print("Tree_DBH*******************************************************") # Print a debugging message
+                        print(Tree_DBH) # Print the calculated DBH
+
+                        # Create a data frame to store the calculated tree metrics.
+                        M <- data.frame(Tree_H, Tree_W, Tree_BH, Tree_DBH, TreeTop = min(cellNumber))
+                        print(M) # Print the metrics data frame
+                        return(M) # Return the metric data frame
                     }
+
                     
                   }
                 }
@@ -165,7 +180,7 @@ AutomaticCode <-
                       HorSplitImg     <- HorSpliter(Img, as.numeric(LocInfo[i,c(2:5)]))
                       # print(dim(HorSplitImg))
                       plot(HorSplitImg)
-                      # 检查裁剪后的图像是否为空
+                      # Check if the cropped image is empty
                       
                       IndTreeOnly <- TreeExtractor(HorSplitImg)
                       # print(dim(IndTreeOnly))
@@ -173,7 +188,7 @@ AutomaticCode <-
                       BaseDetector    <- BaseDetector(IndTreeOnly)
                       print("BaseDetector")
                       print(BaseDetector)
-                      # 在处理之前检查BaseDetector是否全为NA
+                      # Check that BaseDetector is all NA before processing it
                       panduan <- all(is.na(BaseDetector))
   
                       print(!panduan)
@@ -183,63 +198,62 @@ AutomaticCode <-
                         TreeTop         <- BaseDetector[3]             
                         TreeBottom      <- BaseDetector[4]
                         # Calculate the pixel width of the tree
-                        BaseToVP        <- ceiling(abs((Base - VP))) #计算各树木像素到中线的距离 
+                        BaseToVP        <- ceiling(abs((Base - VP))) # Calculate the distance from each tree pixel to the center line 
                         # # print("BaseTOVP")
                         
-                        #计算Wr
+                        #calculateWr
                         # #c(1:BaseToVP)对应公式中Di，1/cos(asin(c(1:BaseToVP)/(H/2)))对应Cv,i
                         CorrectedPixSum <- sum(1/cos(asin(c(1:BaseToVP)/(H/2))), na.rm=T)-BaseToVP
                         print(CorrectedPixSum)
 
-                        PixelWidth      <- VH/CorrectedPixSum#Wr,算DBH    ####wr计算有问题，可考虑乘以深度/焦距，，最终基准像素宽度大概在0.6-0.8之间
+                        PixelWidth      <- VH/CorrectedPixSum#Wr,DBH
                         print(PixelWidth)
                         # plot(IndTreeOnly)
                         
-                        #对图像进行水平切割
+                        #Horizontal cutting of images
                         TreeFit         <- VerSpliter(IndTreeOnly, as.numeric(LocInfo[i,c(2:5)]))
                         # plot(TreeFit)
-                        # 1. 选择 TreeFit 的第一个维度的数据
+                        # 1. Select the data of the first dimension of TreeFit
                         subset_data <- TreeFit[,,1]
                         print("subset_data***********************************************************")
                         print(all(is.na(subset_data)))
                         if (!all(is.na(subset_data))){
-                          # 2. 将取整后的数据转换为数据框
+                          # 2. Convert the rounded data into a data frame
                           data_frame_data <- data.frame(ceiling(subset_data))
                           print("data_frame_data")
-                          # 3. 对数据框的每一列应用 sum 函数，忽略缺失值
+                          # 3. Apply the sum function to each column of the data frame, ignoring missing values
                           column_sums <- sapply(data_frame_data, function(x) sum(x, na.rm = TRUE))
-                          # 4. 将结果反转
+                          # 4. Reverse the results
                           PixelCnt <- rev(column_sums)
-                          # print(PixelCnt)
-                          #PixelCnt       <- rev(sapply(data.frame(ceiling(TreeFit[,,1])), FUN = function(x){sum(x, na.rm=T)}))
-                          #获取从树木底部到顶部的行号（修改）
+                          # PixelCnt       <- rev(sapply(data.frame(ceiling(TreeFit[,,1])), FUN = function(x){sum(x, na.rm=T)}))
+                          # Get row numbers from the bottom to the top of the tree (modified)
                           Begin <- as.integer(LocInfo$bottom[i])+1
-                          End <-as.integer(LocInfo$top[i])
-                          a <-c(LocInfo$bottom[i]:LocInfo$top[i])
-                          if (length(c(LocInfo$bottom[i]:LocInfo$top[i]))>length(PixelCnt)){
-                            count=length(c(LocInfo$bottom[i]:LocInfo$top[i]))-length(PixelCnt)
-                            a<-c(LocInfo$bottom[i]:(LocInfo$top[i]-count))
-                            
+                          End <- as.integer(LocInfo$top[i])
+                          a <- c(LocInfo$bottom[i]:LocInfo$top[i])
+                          if (length(c(LocInfo$bottom[i]:LocInfo$top[i])) > length(PixelCnt)){
+                            count = length(c(LocInfo$bottom[i]:LocInfo$top[i])) - length(PixelCnt)
+                            a <- c(LocInfo$bottom[i]:(LocInfo$top[i] - count))
                           }
                           # print(length(a))
-                          names(PixelCnt) <- paste0("X",a )#记录每一行的列数，行数以在原始图像中的行号命名
+                          names(PixelCnt) <- paste0("X", a) # Record the column count for each row, with row numbers named according to their position in the original image
                           print("PixelCnt*******************************************************************************")
-                          
-                          
-                          print(all(is.na(PixelCnt)))#http://127.0.0.1:8597/graphics/plot_zoom_png?width=1200&height=900
+
+                          print(all(is.na(PixelCnt))) # http://127.0.0.1:8597/graphics/plot_zoom_png?width=1200&height=900
                           # print(i)
                           PixelStr        <- StructureAnalyzer(PixelCnt, H)
-                          print("StructureAnalyzer执行完毕！")
+                          print("StructureAnalyzer completed!")
                           print(PixelStr)
-                          # 确保结果不含有NA值
+                          # Ensure the result does not contain NA values
                           if (!is.null(PixelStr)){
-                            result          <- (PixelStr %>% mutate(Tree_H = Tree_H, Tree_BH = Tree_BH))* PixelWidth#tree_H*Wr。
+                            result          <- (PixelStr %>% mutate(Tree_H = Tree_H, Tree_BH = Tree_BH)) * PixelWidth #tree_H*Wr
                             result$TreeTop  <- PixelStr$TreeTop
                             result$ID       <- i
                             print(result)
                             return(result)
                           }
-                          
+                        }
+
+          
                         }
                         
                       }
@@ -277,34 +291,38 @@ AutomaticCode <-
 #mydataset
 # # Specify the paths to your images and files
 
-# 指定CSV文件夹路径
-# csv为根据网络预测的边界框生成的指定格式的csv文件
+# Specify the path to the CSV folder
+# The CSV files are generated from the bounding boxes predicted by the network, in a specific format.
 root <- "E:/Suyingcai/STV_MNet"
 inputData<-  paste0(root,"/data/input data/Structure/")
 csv_folder <-  paste0(inputData,"csv")
 print(file.exists(csv_folder))
-# 获取CSV文件列表
+
+# Get the list of CSV files
 csv_files <- list.files(csv_folder, pattern = "\\.csv$", full.names = TRUE)
 
 processDir0 <- paste0(root,"/results/Structure calculation/results0.1/")
 VH <- 2.5
-# 遍历每个CSV文件
+
+# Iterate over each CSV file
 for (csv_file in csv_files) {
-  # 构建文件名相关路径
+  # Construct file paths related to the filename
   csv_file_name <- basename(csv_file)
   csv_file_name_no_ext <- tools::file_path_sans_ext(csv_file_name)
   YoloTable0 <- csv_file
   print(YoloTable0)
-  #原街景影像
+  
+  # Original street view image
   RawImage0 <- paste0("E:/Suyingcai/changsha/changsha.zip/changsha/", csv_file_name_no_ext, ".jpg")
   print(RawImage0)
-  #网络预测街景图
+  
+  # Network predicted street view image
   YoloImage0 <- paste0(root,"/results/STV_MNet/predict_changsha/", csv_file_name_no_ext, ".jpg")
   print(YoloImage0)
-  #网络预测mask图
+  
+  # Network predicted mask image
   SemsegImage0 <- paste0(root,"/data/input data/Structure/mask/", csv_file_name_no_ext, ".png")
   print(SemsegImage0)
-
   
   
   file.exists(RawImage0)
@@ -313,11 +331,12 @@ for (csv_file in csv_files) {
   file.exists(SemsegImage0)
   result_file <- paste0(processDir0, csv_file_name_no_ext, "_resultTest.csv")
   print(result_file)
+  
   if (file.exists(result_file)) {
-    print("文件存在")
+    print("File exists")
   } else {
   
-    # Call the functiona
+    # Call the function
     result <- AutomaticCode(RawImage0, YoloImage0, YoloTable0, SemsegImage0, processDir0, VH)
     
     # Print the result if needed

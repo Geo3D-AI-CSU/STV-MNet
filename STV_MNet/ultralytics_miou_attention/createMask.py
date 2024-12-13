@@ -28,12 +28,10 @@ def generate_rgb_masks_from_json_files(input_dir, output_dir):
             generate_rgb_mask(json_path, output_dir)
 
 
-# 输入和输出文件夹路径
 STV_MNetPath=r'E:\Suyingcai\STV_MNet'
 input_dir = STV_MNetPath+r'\results\STV_MNet\predict_changsha\json_seg'
 output_dir = STV_MNetPath+r'\data\input data\Structure\test'
 
-# 生成 RGB 格式的 mask.png
 generate_rgb_masks_from_json_files(input_dir, output_dir)
 print("OK")
 
