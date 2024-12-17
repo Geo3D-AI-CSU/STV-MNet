@@ -13,16 +13,14 @@ The **STV-MNet** folder contains the main code for model object detection and se
 
 The **structure** folder includes R code for calculating tree height and diameter at breast height (DBH).
 
-Link to Paper：
+**Link to Paper：**
+DOI: 10.2139/ssrn.4974352
 
 ***
 
 # Table of Contents
-- [File Desscription](#File Desscription)  
 - [Environment](#installment)  
 - [Acknowlegements](#Acknowlegements) 
-
-# File Desscription
 
 # Environment
 
