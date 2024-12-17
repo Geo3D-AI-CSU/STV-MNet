@@ -1,9 +1,9 @@
 # STV-MNet
 
-**Abstract：**
+**Abstract:**
 Traditional methods for estimating the carbon storage of street trees involve manual sampling, which incurs substantial human, material, and temporal costs in establishing a comprehensive inventory of street trees across an entire city. In this study, we propose a multi-task convolutional neural network (STV-MNet) for individual-tree-level street tree identification from Baidu street view images (BSVIs). We measured the structural and locational information of the identified trees using cylindrical projection and MonoDepth depth estimation network. Experimental results show that STV-MNet achieves a mean intersection over union (mIoU) of 0.733 and a mean average precision at IoU 50% (mAP50) of 0.881 in individual tree identification, outperforming DeepLab v3+ (mIoU of 0.641) and YOLO v3 (mAP50 of 0.767). Validation with street measured data demonstrates that our method produces more precise estimations for both tree height and breast diameter, with the root mean square error (RMSE) of 1.68 m and the normalized RMSE (NRMSE) of 0.24 m for tree height and the RMSE of 0.09 m and the NRMSE of 0.29 m for chest diameter. The location prediction of street trees achieves a minimum error of 0.67 m and an average error of 7.37 m. Using the biomass carbon storage equation, we further calculated the carbon storage of each individual street tree in Changsha City, Hunan Province, China. The results indicate that the total carbon storage of 333,717 street trees in urban areas of Changsha City is 1.64 ×105 tons, and the annual carbon sequestration capacity across the urban areas is 8014.57 tons. In certain areas, the existence of street tree resources has enabled the achievement of carbon neutrality in road transportation. This study presents a novel approach for managing urban street tree carbon storage, leveraging STV-MNet for automatic carbon storage calculations, and demonstrates its high practical significance in low-cost and large-scale street tree carbon storage estimation.
 
-**Code Description：**
+**Code Description:**
 
 The **Location** folder contains code for generating single-tree depth estimation using MonoDepth, as well as code for batch projection coordinates and tree coordinate calculation.
 
